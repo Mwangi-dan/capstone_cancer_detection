@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
+  <h2 class="text-3xl font-bold text-center text-blue-600 mb-6">Gastric Cancer Prediction</h2>
+  
+  <form method="POST" enctype="multipart/form-data" class="space-y-4">
+    <label class="block text-gray-700 font-semibold">Upload Endoscopic Image:</label>
+    <input type="file" name="image" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400">
+    
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+      Submit Image
+    </button>
+  </form>
+
+  {% if show_result %}
+    {% if error %}
+      <div class="mt-6 bg-red-100 text-red-700 p-4 rounded border border-red-400">
+        <p><strong>Error:</strong> {{ error }}</p>
+      </div>
+    {% else %}
+      <div class="mt-8 text-center">
+        <p class="text-xl font-medium text-gray-700">Prediction Result:</p>
+        <p class="text-2xl font-bold text-blue-600 mt-2">{{ result.label }}</p>
+        <p class="text-gray-600 text-lg mt-1">Confidence: {{ result.confidence | round(3) }}</p>
+
+        <div class="relative inline-block rounded overflow-hidden shadow-lg" style="max-width: 500px;">
+            <!-- Base image -->
+            <img id="base-image"
+                src="{{ url_for('uploaded_file', filename='images/' + result.image_filename) }}"
+                class="w-full transition-opacity duration-300" />
+
+            <!-- Grad-CAM overlay -->
+            <img id="gradcam-image"
+                src="{{ url_for('uploaded_file', filename='gradcams/' + result.gradcam_filename) }}"
+                class="w-full absolute top-0 left-0 transition-opacity duration-300 opacity-0" />
+        </div>
+
+        <!-- Toggle button -->
+        <button onclick="toggleOverlay()"
+                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+            Toggle Grad-CAM
+        </button>
+      </div>
+
+      <!-- Feedback Form -->
+        <form method="POST" action="{{ url_for('submit_feedback', prediction_id=result.prediction_id) }}" class="mt-6 text-left bg-gray-50 p-4 rounded shadow-sm">
+        <p class="font-semibold text-gray-700 mb-2">Do you agree with the model's prediction?</p>
+        
+        <label class="inline-flex items-center mr-4">
+            <input type="radio" name="is_correct" value="yes" required class="form-radio text-blue-600">
+            <span class="ml-2">Yes</span>
+        </label>
+        
+        <label class="inline-flex items-center">
+            <input type="radio" name="is_correct" value="no" required class="form-radio text-blue-600">
+            <span class="ml-2">No</span>
+        </label>
+
+        <!-- Conditional text field -->
+        <div id="true-label-input" class="mt-4 hidden">
+            <label class="block text-gray-700 mb-1">What is the correct label?</label>
+            <input type="text" name="true_label" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="e.g. Cancerous or Non-Cancerous">
+        </div>
+
+        <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
+            Submit Feedback
+        </button>
+        </form>
+
+        <script>
+        const radios = document.querySelectorAll('input[name="is_correct"]');
+        const trueLabelInput = document.getElementById('true-label-input');
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', () => {
+            trueLabelInput.style.display = (radio.value === 'no') ? 'block' : 'none';
+            });
+        });
+        </script>
+
+
+    {% endif %}
+  {% endif %}
+  <a href="{{ url_for('history') }}" class="text-blue-600 hover:underline text-sm mt-4 block text-center">
+  View Prediction History →
+</a>
+</div>
+<script>
+  let overlayVisible = false;
+
+  function toggleOverlay() {
+    const gradcam = document.getElementById("gradcam-image");
+    const base = document.getElementById("base-image");
+
+    if (!gradcam || !base) return;
+
+    if (overlayVisible) {
+      gradcam.style.opacity = 0;
+      base.style.opacity = 1;
+    } else {
+      gradcam.style.opacity = 1;
+      base.style.opacity = 0.3;  // Optional dimming
+    }
+
+    overlayVisible = !overlayVisible;
+  }
+</script>
+{% endblock %}

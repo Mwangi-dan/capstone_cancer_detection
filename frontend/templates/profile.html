@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded shadow">
+  <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">My Profile</h2>
+
+  <form method="POST">
+    <!-- Full Name -->
+    <div class="mb-4">
+      <label class="block font-semibold">Full Name</label>
+      <input type="text" name="name" value="{{ current_user.name }}"
+             class="w-full border p-2 rounded" required>
+    </div>
+
+    <!-- Conditional: if not verified, show editable fields -->
+    {% if not current_user.is_verified %}
+      <div class="mb-4">
+        <label class="block font-semibold">Email</label>
+        <input type="email" name="email" value="{{ current_user.email }}"
+               class="w-full border p-2 rounded" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="block font-semibold">Institution</label>
+        <input type="text" name="institution" value="{{ current_user.institution }}"
+               class="w-full border p-2 rounded" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="block font-semibold">Medical License Number</label>
+        <input type="text" name="license_number" value="{{ current_user.license_number }}"
+               class="w-full border p-2 rounded" required>
+      </div>
+    {% else %}
+      <!-- Display-only version for verified users -->
+      <div class="mb-4">
+        <label class="block font-semibold">Email</label>
+        <input type="email" value="{{ current_user.email }}"
+               class="w-full border p-2 rounded bg-gray-100 text-gray-600" disabled>
+      </div>
+
+      <div class="mb-4">
+        <label class="block font-semibold">Institution</label>
+        <input type="text" value="{{ current_user.institution }}"
+               class="w-full border p-2 rounded bg-gray-100 text-gray-600" disabled>
+      </div>
+
+      <div class="mb-4">
+        <label class="block font-semibold">Medical License Number</label>
+        <input type="text" value="{{ current_user.license_number }}"
+               class="w-full border p-2 rounded bg-gray-100 text-gray-600" disabled>
+      </div>
+    {% endif %}
+
+    <!-- Password Update -->
+    <div class="mb-4">
+      <label class="block font-semibold">New Password (optional)</label>
+      <input type="password" name="password" class="w-full border p-2 rounded">
+    </div>
+
+    <!-- Submit -->
+    <div class="mb-6">
+      <button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Update Profile</button>
+    </div>
+
+    <p class="text-sm text-gray-500">🔒 {{ 'Verified' if current_user.is_verified else 'Not Verified' }}</p>
+  </form>
+</div>
+{% endblock %}

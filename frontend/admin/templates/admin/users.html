@@ -1,0 +1,55 @@
+{% extends "admin/admin_layout.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto p-6">
+  <h1 class="text-3xl font-bold text-blue-700 mb-6">User Management</h1>
+
+  <h2 class="text-xl font-semibold text-gray-800 mb-2">Pending Clinician Approvals</h2>
+  {% if pending_users %}
+    <div class="space-y-4">
+      {% for user in pending_users %}
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+          <p class="font-medium">{{ user.name }} ({{ user.email }}) — {{ user.institution }}</p>
+          <button class="text-green-600 font-semibold hover:underline">
+            <a href="{{ url_for('admin.view_user_detail', user_id=user.id) }}"
+   class="text-sm text-blue-600 underline ml-2">View Details</a>
+
+          </button>
+          <form action="{{ url_for('admin.verify_user', user_id=user.id) }}" method="POST" class="inline">
+            <button class="text-green-600 font-semibold hover:underline">Verify</button>
+          </form>
+          {% if user.role != 'admin' %}
+            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" class="inline ml-4">
+            <button class="text-red-600 font-semibold hover:underline">Delete</button>
+            </form>
+        {% endif %}
+        
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-600 mb-6">No pending clinicians.</p>
+  {% endif %}
+
+  <hr class="my-6">
+
+  <h2 class="text-xl font-semibold text-gray-800 mb-2">Verified Clinicians</h2>
+  {% if verified_users %}
+    <ul class="space-y-2">
+      {% for user in verified_users %}
+        <li class="bg-white border rounded p-4 shadow-sm flex items-center justify-between">
+          <p class="font-medium">{{ user.name }} ({{ user.email }}) — {{ user.institution }}</p>
+          <div>
+            <a href="{{ url_for('admin.view_user_detail', user_id=user.id) }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg shadow">
+              View Details
+            </a>
+          </div>
+
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-gray-600">No verified clinicians found.</p>
+  {% endif %}
+</div>
+{% endblock %}

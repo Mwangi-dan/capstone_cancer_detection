@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto text-center bg-white p-8 rounded-xl shadow-md">
+  <h2 class="text-3xl font-bold text-blue-600 mb-4">Cancer Detection Quiz</h2>
+  <p class="text-gray-700 mb-6">
+    Can you identify whether this endoscopic image is cancerous or non-cancerous? Make your best guess and see the Grad-CAM explanation!
+  </p>
+
+  <!-- Quiz image -->
+  <img src="/static/quiz/sample.jpg" alt="Quiz Image" class="mx-auto border rounded-lg shadow-md mb-6 max-w-full" />
+
+  <!-- Answer buttons -->
+  <form method="POST" action="/quiz" class="flex justify-center gap-4 mb-6">
+    <button name="guess" value="Cancerous" class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Cancerous</button>
+    <button name="guess" value="Non-Cancerous" class="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700">Non-Cancerous</button>
+  </form>
+
+  {% if answer %}
+  <div class="mt-4 p-4 border rounded bg-blue-50 text-blue-700">
+    <p class="font-semibold text-lg">
+      {% if correct %} ✅ Correct! {% else %} ❌ Incorrect. {% endif %} The image is <strong>{{ correct_answer }}</strong>.
+    </p>
+  </div>
+
+  <!-- Grad-CAM -->
+  <div class="mt-6">
+    <label class="block font-semibold text-gray-700 mb-2">Grad-CAM Visualization:</label>
+    <img src="/static/quiz/sample_gradcam.jpg" alt="Grad-CAM Explanation" class="mx-auto border rounded-lg shadow">
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

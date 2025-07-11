@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastric Cancer Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <nav class="bg-white shadow-md px-6 py-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="/" class="text-2xl font-bold text-blue-600">GastroDetect AI</a>
+
+      <div class="flex items-center space-x-6">
+        {% if current_user.is_authenticated %}
+        <span class="text-sm text-gray-700">👋 Hi, {{ current_user.name }}</span>
+        {% endif %}
+
+        {% if current_user.is_authenticated and not current_user.is_verified %}
+          <p class="text-sm text-red-600">🔒 Unverified Clinician</p>
+        {% endif %}
+
+        <!-- 🔔 Notification Bell -->
+        {% if current_user.is_authenticated %}
+        <div class="relative">
+          <button onclick="toggleNotifDropdown()" class="relative text-xl focus:outline-none">
+            🔔
+            {% set unread = current_user.notifications | selectattr("is_read", "equalto", False) | list %}
+            {% if unread|length > 0 %}
+              <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1">
+                {{ unread|length }}
+              </span>
+            {% endif %}
+          </button>
+
+          <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded shadow-lg z-50">
+            {% set count = 0 %}
+            {% for n in current_user.notifications | reverse %}
+            {% if count < 5 %}
+                <div onclick="openNotifModal({{ n.id }}, '{{ n.message | escape }}')"
+                    class="p-3 border-b text-sm hover:bg-gray-50 cursor-pointer {{ 'font-bold' if not n.is_read else '' }}">
+                {{ n.message[:50] }}...
+                <div class="text-xs text-gray-500">{{ n.timestamp.strftime('%b %d, %H:%M') }}</div>
+                </div>
+                {% set count = count + 1 %}
+            {% endif %}
+            {% else %}
+            <p class="p-3 text-gray-600 text-sm">No notifications.</p>
+            {% endfor %}
+
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Menu -->
+        <div class="space-x-4">
+          <a href="/" class="hover:text-blue-500">Home</a>
+          <a href="/about" class="hover:text-blue-500">About</a>
+          {% if current_user.is_authenticated %}
+            <a href="/predict" class="hover:text-blue-500">Predict</a>
+            <a href="{{ url_for('profile') }}" class="hover:text-blue-500">Profile</a>
+            <a href="/logout" class="hover:text-red-500 font-semibold">Logout</a>
+          {% else %}
+            <a href="/login" class="hover:text-blue-500">Login</a>
+            <a href="/signup" class="hover:text-blue-500">Signup</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-10 px-6 container mx-auto">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div id="flash-container" class="mb-6">
+        {% for category, message in messages %}
+          <div class="px-4 py-3 rounded border mb-2
+            {% if category == 'success' %} bg-green-100 border-green-400 text-green-700
+            {% elif category == 'danger' %} bg-red-100 border-red-400 text-red-700
+            {% else %} bg-gray-100 border-gray-400 text-gray-700
+            {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- 🔍 Notification Modal -->
+  <div id="notifModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow p-6 max-w-md w-full relative">
+      <button onclick="closeNotifModal()" class="absolute top-2 right-3 text-gray-600 text-2xl hover:text-red-600">&times;</button>
+      <h2 class="text-xl font-bold text-blue-700 mb-3">Notification</h2>
+      <p id="notifContent" class="text-gray-800 mb-2"></p>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script>
+    setTimeout(() => {
+      const container = document.getElementById("flash-container");
+      if (container) {
+        container.style.display = "none";
+      }
+    }, 10000);
+
+    function toggleNotifDropdown() {
+      const dropdown = document.getElementById("notifDropdown");
+      dropdown.classList.toggle("hidden");
+    }
+
+    function openNotifModal(id, message) {
+      document.getElementById("notifContent").innerText = message;
+      document.getElementById("notifModal").classList.remove("hidden");
+
+      fetch(`/notification/read/${id}`, {
+        method: 'POST'
+      }).then(() => {
+        setTimeout(() => location.reload(), 10000);  // Refresh to update badge
+      });
+    }
+
+    function closeNotifModal() {
+      document.getElementById("notifModal").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>

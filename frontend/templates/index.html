@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="text-center px-4 py-10">
+  <h1 class="text-5xl font-extrabold text-blue-600 mb-6">Welcome to GastroDetect AI</h1>
+  <p class="text-xl text-gray-700 max-w-2xl mx-auto mb-8">
+    A cutting-edge web platform that leverages deep learning to detect gastric cancer from endoscopic images. Improve early diagnosis with the help of AI-powered predictions and Grad-CAM visualizations.
+  </p>
+  <div class="flex justify-center gap-4">
+    <a href="/predict" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium">Try the Prediction Tool</a>
+    <a href="/about" class="bg-gray-100 hover:bg-gray-200 text-blue-600 px-6 py-3 rounded-lg text-lg font-medium border border-blue-600">Learn More</a>
+  </div>
+</div>
+{% endblock %}
