@@ -23,6 +23,10 @@ import os
 from flask import send_from_directory
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 
@@ -41,14 +45,14 @@ os.makedirs(GRADCAM_FOLDER, exist_ok=True)
 
 # CONFIGURATION
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "your-secret-key"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'danmwangi2024@gmail.com'         # use env var in prod
-app.config['MAIL_PASSWORD'] = 'danmwangi13'            # generate app password
-app.config['MAIL_DEFAULT_SENDER'] = 'danmwangi2024@gmail.com'
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "fallback-secret-key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///users.db")
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", "587"))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True").lower() == "true"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
 mail = Mail(app)
 
@@ -63,7 +67,7 @@ login_manager.init_app(app)
 
 bcrypt = Bcrypt(app)
 
-FASTAPI_URL = "http://localhost:8000/predict/"
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000/predict/")
 
 # User Loader
 @login_manager.user_loader

@@ -7,3 +7,4 @@ instance/
 pycaches/
 *.pyc
 */__pycache__/
+.env
