@@ -1,1 +1,9 @@
 venv/
+uploads/
+gradcams/
+temp/
+instance/
+*/instance/
+pycaches/
+*.pyc
+*/__pycache__/
