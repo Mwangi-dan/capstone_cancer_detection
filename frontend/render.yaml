@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: gastric-ui
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: SECRET_KEY
+        value: secret_key
+      - key: SQLALCHEMY_DATABASE_URI
+        value: postgresql://gastric_user_ai:JKoaaSCxVVKQDhaMV1t3ZbVZ6xNPGYNo@dpg-d213o195pdvs739lqu70-a.oregon-postgres.render.com/gastric_ai
+      - key: FASTAPI_URL
+        value: https://fastapi-gastric-detect.onrender.com
