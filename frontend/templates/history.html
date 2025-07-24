@@ -1,55 +1,83 @@
-
 {% extends "layout.html" %}
 {% block content %}
-<div class="max-w-5xl mx-auto py-10 px-4">
+<div class="max-w-6xl mx-auto py-10 px-4">
   <h2 class="text-3xl font-bold text-blue-700 mb-6 text-center">Prediction History</h2>
 
   {% if predictions %}
-    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+  <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+    <table class="min-w-full text-sm text-left">
       <thead class="bg-blue-600 text-white">
         <tr>
-          <th class="py-3 px-4 text-left">Date</th>
-          <th class="py-3 px-4 text-left">Label</th>
-          <th class="py-3 px-4 text-left">Confidence</th>
-          <th class="py-3 px-4 text-left">Image</th>
-          <th class="py-3 px-4 text-left">Grad-CAM</th>
+          <th class="py-3 px-4">Date</th>
+          <th class="py-3 px-4">Label</th>
+          <th class="py-3 px-4">Confidence</th>
+          <th class="py-3 px-4">Feedback</th>
+          <th class="py-3 px-4">Image</th>
+          <th class="py-3 px-4">Grad-CAM</th>
+          <th class="py-3 px-4 text-left">Actions</th>
         </tr>
       </thead>
-      <tbody class="text-gray-700">
+      <tbody class="text-gray-800">
         {% for pred in predictions %}
-        <tr class="border-b">
+        <tr class="border-b hover:bg-gray-50">
           <td class="py-3 px-4">{{ pred.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-          <td class="py-3 px-4">{{ pred.label }}</td>
-          <td class="py-3 px-4">{{ pred.confidence|round(3) }}</td>
+          <td class="py-3 px-4 font-medium text-blue-700">{{ pred.label }}</td>
+          <td class="py-3 px-4">{{ pred.confidence|round(2) }}</td>
+          <td class="py-3 px-4">
+            {% if pred.feedback %}
+              {% if pred.feedback.is_correct %}
+                <span class="text-green-600 font-semibold">✔️ Agreed</span>
+              {% else %}
+                <span class="text-red-600 font-semibold">❌ Disagreed</span>
+              {% endif %}
+            {% else %}
+              <span class="text-gray-500 italic">No feedback</span>
+            {% endif %}
+          </td>
           <td class="py-3 px-4">
             <img src="{{ url_for('uploaded_file', filename='images/' + pred.image_path) }}"
-       alt="Image"
-       class="h-20 rounded border cursor-pointer hover:scale-105 transition"
-       onclick="showModal('{{ url_for('uploaded_file', filename='images/' + pred.image_path) }}')">
+                 alt="Input Image"
+                 class="h-20 rounded border cursor-pointer hover:scale-105 transition"
+                 onclick="showModal('{{ url_for('uploaded_file', filename='images/' + pred.image_path) }}')">
+          </td>
           <td class="py-3 px-4">
-          <img src="{{ url_for('uploaded_file', filename='gradcams/' + pred.gradcam_path) }}"
-              alt="Grad-CAM"
-              class="h-20 rounded border cursor-pointer hover:scale-105 transition"
-              onclick="showModal('{{ url_for('uploaded_file', filename='gradcams/' + pred.gradcam_path) }}')">
+            <img src="{{ url_for('uploaded_file', filename='gradcams/' + pred.gradcam_path) }}"
+                 alt="Grad-CAM"
+                 class="h-20 rounded border cursor-pointer hover:scale-105 transition"
+                 onclick="showModal('{{ url_for('uploaded_file', filename='gradcams/' + pred.gradcam_path) }}')">
+          </td>
+          <td class="py-3 px-4">
+          <a href="{{ url_for('view_prediction', prediction_id=pred.id) }}"
+            class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded">
+            View Details
+          </a>
         </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+  </div>
 
-    <div class="mt-6 text-center">
-      {% if predictions.has_prev %}
-        <a href="{{ url_for('history', page=predictions.prev_num) }}" class="px-3 py-1 bg-blue-200 hover:bg-blue-300 rounded mr-2">Previous</a>
-      {% endif %}
-      {% if predictions.has_next %}
-        <a href="{{ url_for('history', page=predictions.next_num) }}" class="px-3 py-1 bg-blue-200 hover:bg-blue-300 rounded">Next</a>
-      {% endif %}
-    </div>
+  <!-- Pagination -->
+  <div class="mt-6 text-center">
+    {% if predictions.has_prev %}
+    <a href="{{ url_for('history', page=predictions.prev_num) }}"
+       class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-l text-blue-700 font-medium">Previous</a>
+    {% endif %}
+    {% if predictions.has_next %}
+    <a href="{{ url_for('history', page=predictions.next_num) }}"
+       class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-r text-blue-700 font-medium">Next</a>
+    {% endif %}
+  </div>
 
   {% else %}
-    <p class="text-center text-gray-600">No prediction history available.</p>
+  <p class="text-center text-gray-600">No prediction history available.</p>
   {% endif %}
 </div>
+
+<a href="{{ url_for('download_history_pdf') }}" class="text-sm bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 float-right">
+  📥 Download All as PDF
+</a>
 
 <!-- Image Modal -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
@@ -72,5 +100,4 @@
     document.getElementById("imageModal").classList.add("hidden");
   }
 </script>
-
 {% endblock %}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: sans-serif; font-size: 12px; }
+    h2 { color: #1e40af; }
+    img { max-width: 100%; height: auto; margin-top: 10px; }
+    .section { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Prediction Report</h2>
+  <div class="section">
+    <strong>Date:</strong> {{ prediction.timestamp.strftime('%Y-%m-%d %H:%M') }}<br>
+    <strong>Label:</strong> {{ prediction.label }}<br>
+    <strong>Confidence:</strong> {{ prediction.confidence | round(3) }}<br>
+    <strong>User:</strong> {{ prediction.user.name }} ({{ prediction.user.email }})
+  </div>
+
+  <div class="section">
+    <h3>Feedback</h3>
+    {% if feedback %}
+      {% if feedback.is_correct %}✔️ Agreed
+      {% else %}❌ Disagreed{% if feedback.true_label %} (Correct: {{ feedback.true_label }}){% endif %}
+      {% endif %}
+    {% else %}
+      No feedback provided.
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h3>Input Image</h3>
+    <img src="{{ input_image_url }}">
+  </div>
+
+  <div class="section">
+    <h3>Grad-CAM</h3>
+    <img src="{{ gradcam_url }}">
+  </div>
+</body>
+</html>

@@ -1,32 +1,41 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager
-from flask_bcrypt import Bcrypt
-from database import db
-from models import User
-from auth import auth
-import requests
-from flask_login import login_required
-from flask_login import current_user
-from models import Prediction
-import uuid
-import hashlib
+import os
 import time
-import os
-from werkzeug.utils import secure_filename
-from flask import send_file
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+import hashlib
+import requests
 from io import BytesIO
-from models import Prediction, Feedback, Notification
-from flask_login import login_required, current_user
-import os
-from flask import send_from_directory
+from datetime import datetime
+
+from flask import (
+    Flask, render_template, request, redirect, url_for, flash, abort,
+    make_response, send_file, send_from_directory
+)
+from flask_login import (
+    LoginManager, login_required, current_user
+)
+from flask_bcrypt import Bcrypt
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
+
+from database import db
+from models import User, Prediction, Feedback, Notification, Log
+from auth import auth
+
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.pdfgen import canvas
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Image
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from flask_login import user_logged_in, user_logged_out
+
+
 
 # Load environment variables
 load_dotenv()
+print("Current DB:", os.getenv("SQLALCHEMY_DATABASE_URI"))
 
 
 
@@ -46,13 +55,15 @@ os.makedirs(GRADCAM_FOLDER, exist_ok=True)
 # CONFIGURATION
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "fallback-secret-key")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///users.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
 app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", "587"))
 app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True").lower() == "true"
 app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['GRADCAM_FOLDER'] = GRADCAM_FOLDER
 
 mail = Mail(app)
 
@@ -165,44 +176,20 @@ def predict():
 
     return render_template("predict.html", show_result=False)
 
+def log_action(user_id, action, metadata=None):
+    log = Log(user_id=user_id, action=action, metadata=metadata)
+    db.session.add(log)
+    db.session.commit()
 
-@app.route("/report/<int:prediction_id>")
-@login_required
-def download_report(prediction_id):
-    prediction = Prediction.query.filter_by(id=prediction_id, user_id=current_user.id).first()
-    if not prediction:
-        return "Prediction not found or unauthorized", 404
+# When a user logs in
+@user_logged_in.connect_via(app)
+def log_user_login(sender, user):
+    log_action(user.id, "User Logged In")
 
-    # Generate PDF in memory
-    buffer = BytesIO()
-    pdf = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-
-    pdf.setTitle("GastroDetect AI - Prediction Report")
-    pdf.setFont("Helvetica-Bold", 20)
-    pdf.drawCentredString(width / 2, height - 50, "GastroDetect AI - Prediction Report")
-
-    # Metadata
-    pdf.setFont("Helvetica", 12)
-    pdf.drawString(50, height - 100, f"Prediction ID: {prediction.id}")
-    pdf.drawString(50, height - 120, f"Date: {prediction.timestamp.strftime('%Y-%m-%d %H:%M')}")
-    pdf.drawString(50, height - 140, f"Label: {prediction.label}")
-    pdf.drawString(50, height - 160, f"Confidence: {round(prediction.confidence * 100, 2)}%")
-
-    # Image & Grad-CAM
-    if os.path.exists(prediction.image_path):
-        pdf.drawString(50, height - 200, "Uploaded Image:")
-        pdf.drawImage(prediction.image_path, 50, height - 400, width=200, preserveAspectRatio=True)
-
-    if os.path.exists(prediction.gradcam_path):
-        pdf.drawString(300, height - 200, "Grad-CAM Visualization:")
-        pdf.drawImage(prediction.gradcam_path, 300, height - 400, width=200, preserveAspectRatio=True)
-
-    pdf.showPage()
-    pdf.save()
-
-    buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name="prediction_report.pdf", mimetype="application/pdf")
+# When a user logs out
+@user_logged_out.connect_via(app)
+def log_user_logout(sender, user):
+    log_action(user.id, "User Logged Out")
 
 
 @app.route("/profile", methods=["GET", "POST"])
@@ -246,9 +233,158 @@ def quiz():
 @app.route("/history")
 @login_required
 def history():
-    predictions = Prediction.query.filter_by(user_id=current_user.id).order_by(Prediction.timestamp.desc()).all()
+    page = request.args.get("page", 1, type=int)
+
+    predictions = Prediction.query \
+        .filter_by(user_id=current_user.id) \
+        .order_by(Prediction.timestamp.desc()) \
+        .paginate(page=page, per_page=10)
+
+    # Attach the first feedback to each prediction for easy access
+    for p in predictions.items:
+        p.feedback = p.feedbacks[0] if p.feedbacks else None
+
     return render_template("history.html", predictions=predictions)
 
+
+@app.route("/history/<int:prediction_id>", methods=["GET", "POST"])
+@login_required
+def view_prediction(prediction_id):
+    prediction = Prediction.query.get_or_404(prediction_id)
+
+    if prediction.user_id != current_user.id:
+        abort(403)
+
+    feedback = Feedback.query.filter_by(prediction_id=prediction_id, user_id=current_user.id).first()
+
+    if request.method == "POST":
+        is_correct = request.form.get("is_correct")
+        true_label = request.form.get("true_label") if is_correct == "no" else None
+
+        if feedback:
+            feedback.is_correct = (is_correct == "yes")
+            feedback.true_label = true_label
+            feedback.timestamp = datetime.utcnow()
+        else:
+            feedback = Feedback(
+                user_id=current_user.id,
+                prediction_id=prediction_id,
+                is_correct=(is_correct == "yes"),
+                true_label=true_label
+            )
+            db.session.add(feedback)
+
+        db.session.commit()
+        flash("Feedback saved.", "success")
+        return redirect(url_for("view_prediction", prediction_id=prediction_id))
+
+    return render_template("view_prediction.html", prediction=prediction, feedback=feedback)
+
+
+@app.route('/download/history.pdf')
+@login_required
+def download_history_pdf():
+    from io import BytesIO
+    buffer = BytesIO()
+
+    predictions = Prediction.query.filter_by(user_id=current_user.id).order_by(Prediction.timestamp.desc()).all()
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Prediction History", styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    for p in predictions:
+        # Feedback info
+        feedback = p.feedbacks[0] if p.feedbacks else None
+        feedback_text = "✔️ Agreed" if feedback and feedback.is_correct else f"❌ Disagreed ({feedback.true_label or 'Unspecified'})" if feedback else "No feedback"
+
+        # Core info
+        elements.append(Paragraph(f"<b>Date:</b> {p.timestamp.strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+        elements.append(Paragraph(f"<b>Label:</b> {p.label}", styles['Normal']))
+        elements.append(Paragraph(f"<b>Confidence:</b> {round(p.confidence, 3)}", styles['Normal']))
+        elements.append(Paragraph(f"<b>Feedback:</b> {feedback_text}", styles['Normal']))
+        elements.append(Spacer(1, 6))
+
+        # Image path
+        #image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'images', p.image_path)
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], p.image_path)
+
+        if os.path.exists(image_path):
+            elements.append(Image(image_path, width=3.5*inch, height=2.5*inch))
+            elements.append(Spacer(1, 12))
+        else:
+            elements.append(Paragraph("<i>Image not available</i>", styles['Normal']))
+            elements.append(Spacer(1, 12))
+
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("<hr/>", styles['Normal']))
+        elements.append(Spacer(1, 12))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=prediction-history.pdf'
+    return response
+
+
+@app.route('/download/prediction/<int:prediction_id>.pdf')
+@login_required
+def download_prediction_pdf(prediction_id):
+    from io import BytesIO
+    buffer = BytesIO()
+
+    prediction = Prediction.query.get_or_404(prediction_id)
+    if prediction.user_id != current_user.id:
+        abort(403)
+    feedback = prediction.feedbacks[0] if prediction.feedbacks else None
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Prediction Report", styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    elements.append(Paragraph(f"Date: {prediction.timestamp.strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+    elements.append(Paragraph(f"Label: {prediction.label}", styles['Normal']))
+    elements.append(Paragraph(f"Confidence: {round(prediction.confidence, 3)}", styles['Normal']))
+    elements.append(Spacer(1, 12))
+
+    if feedback:
+        feedback_text = "✔️ Agreed" if feedback.is_correct else f"❌ Disagreed ({feedback.true_label or 'Unspecified'})"
+    else:
+        feedback_text = "No feedback provided"
+    elements.append(Paragraph(f"Feedback: {feedback_text}", styles['Normal']))
+    elements.append(Spacer(1, 16))
+
+    # Add Input Image
+    input_image_path = os.path.join(app.config['UPLOAD_FOLDER'], prediction.image_path)
+    gradcam_image_path = os.path.join(app.config['GRADCAM_FOLDER'], prediction.gradcam_path)
+
+
+    if os.path.exists(input_image_path):
+        elements.append(Paragraph("Input Image:", styles['Heading3']))
+        elements.append(Image(input_image_path, width=4*inch, height=3*inch))
+        elements.append(Spacer(1, 12))
+
+    if os.path.exists(gradcam_image_path):
+        elements.append(Paragraph("Grad-CAM Visualization:", styles['Heading3']))
+        elements.append(Image(gradcam_image_path, width=4*inch, height=3*inch))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=prediction-{prediction.id}.pdf'
+    return response
 
 
 
@@ -393,4 +529,9 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("DB:", os.getenv("SQLALCHEMY_DATABASE_URI"))
+    # DB Create
+    with app.app_context():
+        db.create_all()
+
+    app.run(host="0.0.0.0", port=5000, debug=False)

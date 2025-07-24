@@ -7,13 +7,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
-  <nav class="bg-white shadow-md px-6 py-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <a href="/" class="text-2xl font-bold text-blue-600">GastroDetect AI</a>
 
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md px-6 py-4 fixed w-full top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <!-- Logo -->
+      <a href="/" class="text-2xl font-bold text-blue-600 hover:text-blue-700 transition duration-300">GastroDetect</a>
+
+      <!-- Right Side -->
       <div class="flex items-center space-x-6">
         {% if current_user.is_authenticated %}
-        <span class="text-sm text-gray-700">👋 Hi, {{ current_user.name }}</span>
+          <span class="text-sm text-gray-700">👋 Hi, {{ current_user.name }}</span>
         {% endif %}
 
         {% if current_user.is_authenticated and not current_user.is_verified %}
@@ -23,11 +27,11 @@
         <!-- 🔔 Notification Bell -->
         {% if current_user.is_authenticated %}
         <div class="relative">
-          <button onclick="toggleNotifDropdown()" class="relative text-xl focus:outline-none">
+          <button onclick="toggleNotifDropdown()" class="relative text-xl focus:outline-none hover:animate-pulse transition">
             🔔
             {% set unread = current_user.notifications | selectattr("is_read", "equalto", False) | list %}
             {% if unread|length > 0 %}
-              <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1">
+              <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1 animate-ping">
                 {{ unread|length }}
               </span>
             {% endif %}
@@ -36,39 +40,44 @@
           <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded shadow-lg z-50">
             {% set count = 0 %}
             {% for n in current_user.notifications | reverse %}
-            {% if count < 5 %}
+              {% if count < 5 %}
                 <div onclick="openNotifModal({{ n.id }}, '{{ n.message | escape }}')"
-                    class="p-3 border-b text-sm hover:bg-gray-50 cursor-pointer {{ 'font-bold' if not n.is_read else '' }}">
-                {{ n.message[:50] }}...
-                <div class="text-xs text-gray-500">{{ n.timestamp.strftime('%b %d, %H:%M') }}</div>
+                     class="p-3 border-b text-sm hover:bg-gray-50 cursor-pointer {{ 'font-bold' if not n.is_read else '' }}">
+                  {{ n.message[:50] }}...
+                  <div class="text-xs text-gray-500">{{ n.timestamp.strftime('%b %d, %H:%M') }}</div>
                 </div>
                 {% set count = count + 1 %}
-            {% endif %}
+              {% endif %}
             {% else %}
-            <p class="p-3 text-gray-600 text-sm">No notifications.</p>
+              <p class="p-3 text-gray-600 text-sm">No notifications.</p>
             {% endfor %}
-
           </div>
         </div>
         {% endif %}
 
-        <!-- Menu -->
-        <div class="space-x-4">
-          <a href="/" class="hover:text-blue-500">Home</a>
-          <a href="/about" class="hover:text-blue-500">About</a>
+        <!-- Menu Links -->
+        <div class="space-x-4 text-sm font-medium">
+          <a href="/" class="hover:text-blue-600 transition duration-300">Home</a>
+          <a href="/about" class="hover:text-blue-600 transition duration-300">About</a>
+
           {% if current_user.is_authenticated %}
-            <a href="/predict" class="hover:text-blue-500">Predict</a>
-            <a href="{{ url_for('profile') }}" class="hover:text-blue-500">Profile</a>
-            <a href="/logout" class="hover:text-red-500 font-semibold">Logout</a>
+            <a href="/predict" class="hover:text-blue-600 transition duration-300">Predict</a>
+            <a href="{{ url_for('profile') }}" class="hover:text-blue-600 transition duration-300">Profile</a>
+            <a href="/logout" class="hover:text-red-600 font-semibold transition duration-300">Logout</a>
           {% else %}
-            <a href="/login" class="hover:text-blue-500">Login</a>
-            <a href="/signup" class="hover:text-blue-500">Signup</a>
+            <a href="/login" class="hover:text-blue-600 transition duration-300">Login</a>
+            <a href="/signup" class="hover:text-blue-600 transition duration-300">Signup</a>
           {% endif %}
         </div>
       </div>
     </div>
   </nav>
 
+
+  <!-- Spacer to avoid content hidden under navbar -->
+  <div class="h-20"></div>
+
+  <!-- Main Content -->
   <main class="py-10 px-6 container mx-auto">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -97,6 +106,11 @@
     </div>
   </div>
 
+  <!-- Footer -->
+  <footer class="py-6 text-center text-sm text-gray-500">
+    © 2025 GastroDetect AI. Built with Flask & FastAPI. All rights reserved.
+  </footer>
+
   <!-- JS -->
   <script>
     setTimeout(() => {
@@ -118,7 +132,7 @@
       fetch(`/notification/read/${id}`, {
         method: 'POST'
       }).then(() => {
-        setTimeout(() => location.reload(), 10000);  // Refresh to update badge
+        setTimeout(() => location.reload(), 10000);
       });
     }
 

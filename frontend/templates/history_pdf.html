@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: sans-serif; font-size: 12px; }
+    h2 { color: #1e40af; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background: #1e40af; color: white; }
+  </style>
+</head>
+<body>
+  <h2>Prediction History for {{ user.name }}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Label</th>
+        <th>Confidence</th>
+        <th>Feedback</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for pred in predictions %}
+      <tr>
+        <td>{{ pred.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ pred.label }}</td>
+        <td>{{ pred.confidence|round(3) }}</td>
+        <td>
+          {% set fb = pred.feedbacks[0] if pred.feedbacks else None %}
+          {% if fb %}
+            {{ 'Agreed' if fb.is_correct else 'Disagreed' }}{% if fb.true_label %} ({{ fb.true_label }}){% endif %}
+          {% else %}
+            No feedback
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

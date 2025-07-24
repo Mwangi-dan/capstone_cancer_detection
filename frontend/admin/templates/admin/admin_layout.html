@@ -2,34 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
-  <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+  <title>Admin Console | GastroDetect AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
-  <nav class="bg-blue-900 text-white p-4">
-    <div class="max-w-6xl mx-auto flex justify-between">
-      <span class="font-bold text-lg">Gastric Cancer Admin</span>
-      <div class="space-x-4">
-        <a href="{{ url_for('admin.dashboard') }}" class="hover:underline">Dashboard</a>
-        <a href="{{ url_for('admin.view_users') }}" class="hover:underline">Users</a>
-        <a href="{{ url_for('admin.view_feedback') }}" class="hover:underline">Feedback</a>
-        <a href="{{ url_for('auth.logout') }}" class="hover:underline">Logout</a>
-      </div>
-    </div>
-  </nav>
+<body class="flex bg-gray-100 min-h-screen">
 
-  <main class="p-6">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-md min-h-screen">
+    <div class="p-6 font-bold text-xl text-blue-700 border-b">
+      Admin Panel
+    </div>
+    <nav class="mt-6 space-y-2 px-4">
+      <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-2 rounded hover:bg-blue-100">📊 Dashboard</a>
+      <a href="{{ url_for('admin.view_users') }}" class="block px-4 py-2 rounded hover:bg-blue-100">👥 Users</a>
+      <a href="{{ url_for('admin.view_feedback') }}" class="block px-4 py-2 rounded hover:bg-blue-100">📝 Feedback</a>
+      <a href="{{ url_for('admin.retrain') }}" class="block px-4 py-2 rounded hover:bg-blue-100">🧠 Retrain Model</a>
+      <a href="{{ url_for('admin.logs') }}" class="block px-4 py-2 rounded hover:bg-blue-100">📂 Logs</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        {% for category, message in messages %}
-          <div class="p-3 mb-4 rounded text-sm text-white bg-{{ 'green' if category=='success' else 'red' if category=='error' else 'blue' }}-600">
-            {{ message }}
-          </div>
-        {% endfor %}
+        <div class="mb-4">
+          {% for category, message in messages %}
+            <div class="px-4 py-2 rounded
+              {% if category == 'success' %}bg-green-100 text-green-700
+              {% elif category == 'error' or category == 'danger' %}bg-red-100 text-red-700
+              {% else %}bg-gray-100 text-gray-700{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
       {% endif %}
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
+
 </body>
 </html>

@@ -1,13 +1,73 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="text-center px-4 py-10">
-  <h1 class="text-5xl font-extrabold text-blue-600 mb-6">Welcome to GastroDetect AI</h1>
-  <p class="text-xl text-gray-700 max-w-2xl mx-auto mb-8">
-    A cutting-edge web platform that leverages deep learning to detect gastric cancer from endoscopic images. Improve early diagnosis with the help of AI-powered predictions and Grad-CAM visualizations.
-  </p>
-  <div class="flex justify-center gap-4">
-    <a href="/predict" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium">Try the Prediction Tool</a>
-    <a href="/about" class="bg-gray-100 hover:bg-gray-200 text-blue-600 px-6 py-3 rounded-lg text-lg font-medium border border-blue-600">Learn More</a>
+<!-- Hero Section -->
+<section class="bg-blue-50 py-20 px-6">
+  <div class="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
+    <!-- Text Content -->
+    <div class="lg:w-1/2 text-center lg:text-left">
+      <h1 class="text-5xl font-extrabold text-blue-700 mb-6 leading-tight">
+        Welcome to <span class="text-blue-800">GastroDetect</span>
+      </h1>
+      <p class="text-xl text-gray-700 mb-8">
+        A clinician-support platform that uses deep learning to detect gastric cancer from endoscopic images.
+        Predict. Visualize. Understand.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+        <a href="/predict" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium transition">Try Prediction</a>
+        <a href="#features" class="bg-white hover:bg-gray-100 text-blue-600 px-6 py-3 rounded-lg text-lg font-medium border border-blue-600 transition">Learn More</a>
+      </div>
+    </div>
+
+    <!-- Image Content -->
+    <div class="lg:w-1/2">
+      <img src="{{ url_for('static', filename='images/home-1.jpg') }}"
+           alt="AI healthcare"
+           class="w-full max-w-xl mx-auto rounded-xl shadow-md">
+    </div>
   </div>
-</div>
+</section>
+
+
+<!-- Features Section -->
+<section id="features" class="py-16 bg-white">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <h2 class="text-4xl font-bold text-blue-700 mb-6">What Makes GastroDetect Powerful</h2>
+    <div class="grid gap-8 sm:grid-cols-2 md:grid-cols-3 mt-10">
+      <div class="bg-blue-100 p-6 rounded-lg shadow-md">
+        <h3 class="text-xl font-semibold text-blue-800 mb-2">AI-Powered Detection</h3>
+        <p class="text-gray-700 text-sm">Built with a high-accuracy ResNet model trained on real endoscopic imagery.</p>
+      </div>
+      <div class="bg-green-100 p-6 rounded-lg shadow-md">
+        <h3 class="text-xl font-semibold text-green-800 mb-2">Grad-CAM Visualization</h3>
+        <p class="text-gray-700 text-sm">See the exact regions influencing predictions through heatmaps.</p>
+      </div>
+      <div class="bg-purple-100 p-6 rounded-lg shadow-md">
+        <h3 class="text-xl font-semibold text-purple-800 mb-2">Clinician Feedback</h3>
+        <p class="text-gray-700 text-sm">Submit corrections to help us continuously improve model performance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About Section Preview -->
+<section class="py-20 bg-blue-50">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <h2 class="text-3xl font-bold text-blue-700 mb-4">About the Project</h2>
+    <p class="text-lg text-gray-700 mb-6">
+      GastroDetect AI is part of a research initiative exploring how AI can assist in early detection of gastric cancer in resource-limited settings.
+      It combines diagnostic accuracy with usability to support real-world clinical decision-making.
+    </p>
+    <a href="/about" class="text-blue-600 hover:underline text-lg font-medium">Read More →</a>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-20 bg-white text-center">
+  <h2 class="text-3xl font-bold text-gray-800 mb-4">Get Started with a Free Prediction</h2>
+  <p class="text-gray-600 mb-6">Upload your endoscopic image and receive an instant prediction and visual explanation.</p>
+  <a href="/predict" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-semibold">
+    Upload Image
+  </a>
+</section>
+
 {% endblock %}

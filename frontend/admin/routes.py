@@ -70,6 +70,7 @@ def verify_user(user_id):
         db.session.add(notification)
 
         db.session.commit()
+        log_action(current_user.id, "Verified User", f"Verified user ID {user.id} - {user.name}")
         flash(f"Clinician {user.name} has been verified.", "success")
     return redirect(url_for('admin.view_users'))
 
@@ -197,6 +198,7 @@ def retrain():
             retrain_url = "http://localhost:8000/retrain"  # Update if hosted elsewhere
             res = requests.post(retrain_url)
             if res.status_code == 200:
+                log_action(current_user.id, "Triggered Model Retraining")
                 flash("Model retraining initiated successfully.", "success")
             else:
                 flash(f"Retraining failed: {res.text}", "error")
@@ -210,8 +212,18 @@ def retrain():
 # -----------------------------
 # 6. View Logs (Optional)
 # -----------------------------
+def log_action(user_id, action, metadata=None):
+    from models import Log, db
+    log = Log(user_id=user_id, action=action, metadata=metadata)
+    db.session.add(log)
+    db.session.commit()
+
+
 @admin_bp.route('/admin/logs')
 @admin_required
 def logs():
-    # Add logs if you’re recording activity
-    return render_template('admin/logs.html')
+    from models import Log
+    logs = Log.query.order_by(Log.timestamp.desc()).limit(100).all()
+    return render_template("admin/logs.html", logs=logs)
+
+

@@ -1,54 +1,85 @@
 {% extends "layout.html" %}
 {% block content %}
-<section class="text-center">
-  <h2 class="text-4xl font-extrabold text-blue-600 mb-4">About GastroDetect AI</h2>
-  <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-10">
-    GastroDetect AI is a smart medical platform built to assist clinicians and researchers in detecting gastric cancer using advanced deep learning techniques.
-    It analyzes endoscopic images to identify cancerous lesions early, improving the chances of treatment success and survival.
-  </p>
+<section class="px-6 py-16 max-w-7xl mx-auto space-y-20">
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-    <div class="bg-white p-6 rounded shadow-md">
-      <p class="text-3xl font-bold text-green-600 mb-2">92%</p>
-      <p class="text-gray-600">Model Accuracy</p>
-    </div>
-    <div class="bg-white p-6 rounded shadow-md">
-      <p class="text-3xl font-bold text-blue-600 mb-2">3,500+</p>
-      <p class="text-gray-600">Images Processed</p>
-    </div>
-    <div class="bg-white p-6 rounded shadow-md">
-      <p class="text-3xl font-bold text-purple-600 mb-2">2 sec</p>
-      <p class="text-gray-600">Avg Prediction Time</p>
-    </div>
+  <!-- Hero -->
+  <div class="text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-blue-700 mb-4">About GastroDetect AI</h1>
+    <p class="text-lg text-gray-700 max-w-3xl mx-auto">
+      An intelligent, accessible platform for early gastric cancer detection in Kenya and beyond.
+    </p>
   </div>
 
-  <div class="bg-blue-50 p-8 rounded-xl shadow-md max-w-4xl mx-auto">
-    <h3 class="text-2xl font-semibold text-blue-700 mb-4">How It Works</h3>
-    <ul class="text-left text-gray-700 space-y-3 list-disc list-inside">
-      <li>Users upload an endoscopic image via the prediction page.</li>
-      <li>The system uses a trained Convolutional Neural Network (CNN) to analyze the image.</li>
-      <li>It returns a prediction (cancerous or non-cancerous) along with a confidence score.</li>
-      <li>Optionally, a Grad-CAM visualization shows the regions the model focused on during prediction.</li>
-      <li>All results are rendered instantly in a clean and interactive interface.</li>
+  <!-- Why Kenya Section -->
+  <div class="bg-blue-50 rounded-xl shadow p-8">
+    <h2 class="text-2xl font-bold text-blue-800 mb-4">Why This Project Matters</h2>
+    <p class="text-gray-700 mb-4">
+      In Kenya, many gastric cancer cases are diagnosed too late, leading to high mortality rates. The disease is often asymptomatic in early stages and diagnostic tools are limited in rural hospitals.
+    </p>
+    <ul class="list-disc pl-6 text-gray-700 space-y-2">
+      <li><strong>Over 3,000 Kenyans</strong> are diagnosed with gastric cancer annually.</li>
+      <li><strong>Late diagnosis</strong> is responsible for <strong>up to 80% mortality</strong> in advanced cases.</li>
+      <li>Endoscopy services are often limited to major urban hospitals.</li>
+      <li>This project aims to bring <strong>AI-based diagnosis</strong> closer to frontline clinicians.</li>
     </ul>
   </div>
 
-  <div class="mt-12">
-    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Why GastroDetect?</h3>
-    <div class="flex flex-wrap justify-center gap-6">
-      <div class="w-64 p-6 bg-white rounded shadow">
-        <h4 class="font-bold text-blue-600 mb-2">Explainable AI</h4>
-        <p class="text-sm text-gray-600">Grad-CAM visualizations let clinicians see what the model is looking at.</p>
-      </div>
-      <div class="w-64 p-6 bg-white rounded shadow">
-        <h4 class="font-bold text-blue-600 mb-2">Fast & Accessible</h4>
-        <p class="text-sm text-gray-600">Web-based tool available on all devices with 2-second average predictions.</p>
-      </div>
-      <div class="w-64 p-6 bg-white rounded shadow">
-        <h4 class="font-bold text-blue-600 mb-2">Clinician Friendly</h4>
-        <p class="text-sm text-gray-600">Simple UI, secure image handling, and clear outputs designed for real use.</p>
-      </div>
+  <!-- Vision & Mission -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white border-l-4 border-blue-600 p-6 shadow">
+      <h3 class="text-xl font-bold text-blue-700 mb-2">Our Vision</h3>
+      <p class="text-gray-700">
+        To democratize access to early cancer detection by leveraging intelligent, affordable, and explainable AI tools.
+      </p>
+    </div>
+    <div class="bg-white border-l-4 border-green-600 p-6 shadow">
+      <h3 class="text-xl font-bold text-green-700 mb-2">Our Mission</h3>
+      <p class="text-gray-700">
+        To assist medical professionals in low-resource settings with instant diagnostic support using image-based deep learning models.
+      </p>
     </div>
   </div>
+
+  <!-- Model Explanation -->
+  <div class="mt-12">
+    <h2 class="text-2xl font-bold text-blue-700 mb-4">How the Model Works</h2>
+    <p class="text-gray-700 mb-4">
+      Our system uses a fine-tuned <strong>ResNet50 Convolutional Neural Network</strong> trained on labeled endoscopic images from the Kvasir dataset.
+    </p>
+    <ul class="list-disc pl-6 text-gray-700 space-y-2">
+      <li>Uploads are analyzed in real-time.</li>
+      <li>The model outputs a prediction (cancerous / non-cancerous).</li>
+      <li>A Grad-CAM heatmap shows areas the model focused on.</li>
+      <li>Clinicians can give feedback to improve future retraining.</li>
+    </ul>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 text-center">
+    <div class="bg-white p-6 shadow rounded-lg">
+      <p class="text-3xl font-bold text-green-600">92%</p>
+      <p class="text-sm text-gray-600">Model Accuracy</p>
+    </div>
+    <div class="bg-white p-6 shadow rounded-lg">
+      <p class="text-3xl font-bold text-blue-600">3,500+</p>
+      <p class="text-sm text-gray-600">Images Processed</p>
+    </div>
+    <div class="bg-white p-6 shadow rounded-lg">
+      <p class="text-3xl font-bold text-purple-600">2 sec</p>
+      <p class="text-sm text-gray-600">Average Prediction Time</p>
+    </div>
+  </div>
+
+  <!-- Future Roadmap -->
+  <div class="mt-16 bg-white p-8 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold text-blue-700 mb-4">What’s Next?</h2>
+    <ul class="list-disc pl-6 text-gray-700 space-y-3">
+      <li>Introduce cancer grading (e.g., Stage I–III, benign, metastatic).</li>
+      <li>Expand training dataset with annotated local data.</li>
+      <li>Enable secure clinician logins and personal diagnostic history.</li>
+      <li>Support offline use in rural facilities using edge devices.</li>
+    </ul>
+  </div>
+
 </section>
 {% endblock %}

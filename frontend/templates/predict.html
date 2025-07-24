@@ -1,15 +1,45 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
-  <h2 class="text-3xl font-bold text-center text-blue-600 mb-6">Gastric Cancer Prediction</h2>
-  
-  <form method="POST" enctype="multipart/form-data" class="space-y-4">
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md space-y-8">
+
+  <!-- Title -->
+  <div class="text-center">
+    <h2 class="text-3xl font-bold text-blue-600 mb-2">Gastric Cancer Prediction Tool</h2>
+    <p class="text-gray-600 text-lg">
+      Upload an endoscopic image to get a prediction on whether it shows cancerous or non-cancerous tissue. Results are instant and include a confidence score and heatmap visualization.
+    </p>
+  </div>
+
+  <!-- Instructions -->
+  <div class="bg-blue-50 p-4 rounded-md border border-blue-200 text-sm text-gray-700">
+    <h3 class="font-semibold text-blue-700 mb-2">🧭 How to Use:</h3>
+    <ul class="list-disc pl-5 space-y-1">
+      <li>Select a clear endoscopic image in JPG or PNG format.</li>
+      <li>Click <strong>Submit Image</strong> to get an AI-generated prediction.</li>
+      <li>Toggle the <strong>Grad-CAM</strong> to visualize what the model focused on.</li>
+      <li>Provide feedback if you disagree with the result — this helps us improve!</li>
+    </ul>
+  </div>
+
+  <!-- Upload Form -->
+  <form method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="showSpinner()">
     <label class="block text-gray-700 font-semibold">Upload Endoscopic Image:</label>
     <input type="file" name="image" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400">
-    
+
     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
       Submit Image
     </button>
+
+    <!-- Spinner -->
+    <div id="loading-spinner" class="hidden text-center mt-4">
+      <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <p class="text-blue-600 text-sm mt-2">Analyzing image... Please wait</p>
+    </div>
+
   </form>
 
   {% if show_result %}
@@ -18,73 +48,90 @@
         <p><strong>Error:</strong> {{ error }}</p>
       </div>
     {% else %}
-      <div class="mt-8 text-center">
-        <p class="text-xl font-medium text-gray-700">Prediction Result:</p>
+    <!-- Prediction Results -->
+    <div class="mt-8 space-y-6">
+      <div class="text-center">
+        <h3 class="text-xl font-semibold text-gray-700">Prediction Result</h3>
         <p class="text-2xl font-bold text-blue-600 mt-2">{{ result.label }}</p>
-        <p class="text-gray-600 text-lg mt-1">Confidence: {{ result.confidence | round(3) }}</p>
-
-        <div class="relative inline-block rounded overflow-hidden shadow-lg" style="max-width: 500px;">
-            <!-- Base image -->
-            <img id="base-image"
-                src="{{ url_for('uploaded_file', filename='images/' + result.image_filename) }}"
-                class="w-full transition-opacity duration-300" />
-
-            <!-- Grad-CAM overlay -->
-            <img id="gradcam-image"
-                src="{{ url_for('uploaded_file', filename='gradcams/' + result.gradcam_filename) }}"
-                class="w-full absolute top-0 left-0 transition-opacity duration-300 opacity-0" />
-        </div>
-
-        <!-- Toggle button -->
-        <button onclick="toggleOverlay()"
-                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-            Toggle Grad-CAM
-        </button>
+        <p class="text-gray-600 text-lg mt-1">Confidence Score: {{ result.confidence | round(3) }}</p>
       </div>
 
-      <!-- Feedback Form -->
-        <form method="POST" action="{{ url_for('submit_feedback', prediction_id=result.prediction_id) }}" class="mt-6 text-left bg-gray-50 p-4 rounded shadow-sm">
-        <p class="font-semibold text-gray-700 mb-2">Do you agree with the model's prediction?</p>
-        
-        <label class="inline-flex items-center mr-4">
-            <input type="radio" name="is_correct" value="yes" required class="form-radio text-blue-600">
-            <span class="ml-2">Yes</span>
-        </label>
-        
-        <label class="inline-flex items-center">
-            <input type="radio" name="is_correct" value="no" required class="form-radio text-blue-600">
-            <span class="ml-2">No</span>
-        </label>
+      <!-- Interpretation -->
+      <div class="bg-gray-50 border border-gray-200 rounded p-4 text-sm text-gray-700">
+        <h4 class="font-semibold mb-2">How to Interpret the Confidence Score:</h4>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>0.90 - 1.00:</strong> Very confident prediction</li>
+          <li><strong>0.70 - 0.89:</strong> Confident, but double-check with clinician</li>
+          <li><strong>&lt; 0.70:</strong> Use with caution; may need additional input</li>
+        </ul>
+      </div>
 
-        <!-- Conditional text field -->
-        <div id="true-label-input" class="mt-4 hidden">
-            <label class="block text-gray-700 mb-1">What is the correct label?</label>
-            <input type="text" name="true_label" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="e.g. Cancerous or Non-Cancerous">
-        </div>
+      <!-- Image Display -->
+      <div class="relative mx-auto rounded overflow-hidden shadow-lg" style="max-width: 500px;">
+        <img id="base-image"
+             src="{{ url_for('uploaded_file', filename='images/' + result.image_filename) }}"
+             class="w-full transition-opacity duration-300" />
+        <img id="gradcam-image"
+             src="{{ url_for('uploaded_file', filename='gradcams/' + result.gradcam_filename) }}"
+             class="w-full absolute top-0 left-0 transition-opacity duration-300 opacity-0" />
+      </div>
 
-        <button type="submit" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
-            Submit Feedback
+      <!-- Grad-CAM Toggle -->
+      <div class="text-center">
+        <button onclick="toggleOverlay()" type="button"
+                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+          Toggle Grad-CAM
         </button>
-        </form>
+      </div>
+    </div>
 
-        <script>
-        const radios = document.querySelectorAll('input[name="is_correct"]');
-        const trueLabelInput = document.getElementById('true-label-input');
+    <!-- Feedback Form -->
+    <form method="POST" action="{{ url_for('submit_feedback', prediction_id=result.prediction_id) }}" class="mt-8 bg-gray-50 p-4 rounded shadow-sm space-y-4">
+      <p class="font-semibold text-gray-700">Do you agree with the model's prediction?</p>
 
-        radios.forEach(radio => {
-            radio.addEventListener('change', () => {
-            trueLabelInput.style.display = (radio.value === 'no') ? 'block' : 'none';
-            });
+      <div class="flex items-center space-x-6">
+        <label class="inline-flex items-center">
+          <input type="radio" name="is_correct" value="yes" required class="form-radio text-blue-600">
+          <span class="ml-2">Yes</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="radio" name="is_correct" value="no" required class="form-radio text-blue-600">
+          <span class="ml-2">No</span>
+        </label>
+      </div>
+
+      <div id="true-label-input" class="hidden">
+        <label class="block text-gray-700 mb-1">If no, what is the correct label?</label>
+        <input type="text" name="true_label" class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+               placeholder="e.g. Cancerous or Non-Cancerous">
+      </div>
+
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
+        Submit Feedback
+      </button>
+    </form>
+
+    <script>
+      const radios = document.querySelectorAll('input[name="is_correct"]');
+      const trueLabelInput = document.getElementById('true-label-input');
+
+      radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          trueLabelInput.style.display = (radio.value === 'no') ? 'block' : 'none';
         });
-        </script>
-
-
+      });
+    </script>
     {% endif %}
   {% endif %}
-  <a href="{{ url_for('history') }}" class="text-blue-600 hover:underline text-sm mt-4 block text-center">
-  View Prediction History →
-</a>
+
+  <!-- History Link -->
+  <div class="text-center">
+    <a href="{{ url_for('history') }}" class="text-blue-600 hover:underline text-sm mt-4 inline-block">
+      View Prediction History →
+    </a>
+  </div>
 </div>
+
 <script>
   let overlayVisible = false;
 
@@ -99,10 +146,15 @@
       base.style.opacity = 1;
     } else {
       gradcam.style.opacity = 1;
-      base.style.opacity = 0.3;  // Optional dimming
+      base.style.opacity = 0.3;
     }
 
     overlayVisible = !overlayVisible;
+  }
+
+  function showSpinner() {
+    document.querySelector('button[type="submit"]').disabled = true;
+    document.getElementById('loading-spinner').classList.remove('hidden');
   }
 </script>
 {% endblock %}
