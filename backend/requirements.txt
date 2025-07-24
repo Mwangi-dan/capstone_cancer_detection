@@ -3,3 +3,4 @@ uvicorn
 python-multipart
 tensorflow==2.19.0
 pillow
+opencv-python==4.12.0.88
