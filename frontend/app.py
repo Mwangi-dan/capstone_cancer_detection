@@ -35,7 +35,7 @@ from flask_login import user_logged_in, user_logged_out
 
 # Load environment variables
 load_dotenv()
-print("Current DB:", os.getenv("SQLALCHEMY_DATABASE_URI"))
+
 
 
 
@@ -529,9 +529,4 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    print("DB:", os.getenv("SQLALCHEMY_DATABASE_URI"))
-    # DB Create
-    with app.app_context():
-        db.create_all()
-
     app.run(host="0.0.0.0", port=5000, debug=False)
