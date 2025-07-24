@@ -8,3 +8,4 @@ pycaches/
 *.pyc
 */__pycache__/
 .env
+notebook/
