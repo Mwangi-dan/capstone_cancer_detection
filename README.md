@@ -70,6 +70,7 @@ This project is a full-stack medical diagnostic system for the early detection o
     ├── database/              
 ├── backend/               # FastAPI API
 ├── model/                 # Trained models & Grad-CAM logic
+├──requirements.txt        # Contains packagesused for the project
 ├── Dockerfile             # Backend container
 ├── docker-compose.yml     # Multi-container setup
 └── README.md              
