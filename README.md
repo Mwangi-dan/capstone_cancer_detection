@@ -2,8 +2,15 @@
 
 This project is a full-stack medical diagnostic system for the early detection of gastric cancer from endoscopic images using deep learning. The solution is designed to aid clinicians in identifying cancerous lesions through a web-based interface powered by a trained convolutional neural network (CNN) and explainable AI via Grad-CAM visualizations.
 
-# add image here
+## Screenshot
 ![Gastric Cancer Detection System](./images/gstroDetect_screenshot.png)
+
+## Live site
+
+[Link to website](https://gastric-flask-app.azurewebsites.net/)
+
+## Link to video demo
+[Link to video demo](https://drive.google.com/file/d/1Nqz_d4LTL5yrCagBvI79xa8SGA5VdlHq/view?usp=sharing)
 
 ## Features
 

@@ -40,8 +40,13 @@ def generate_gradcam(model, img_tensor, image_path, layer_name=None):
     original_img = cv2.resize(original_img, (224, 224))
     superimposed_img = cv2.addWeighted(original_img, 0.6, heatmap_color, 0.4, 0)
 
-    os.makedirs("gradcams", exist_ok=True)
-    gradcam_path = os.path.join("gradcams", os.path.basename(image_path))
+    gradcam_dir = os.path.join("uploads", "gradcams")
+    os.makedirs(gradcam_dir, exist_ok=True)
+    
+    filename = os.path.basename(image_path)
+    gradcam_filename = filename.replace(".", "_gradcam.")
+    gradcam_path = os.path.join(gradcam_dir, gradcam_filename)
+
     cv2.imwrite(gradcam_path, superimposed_img)
 
     return gradcam_path

@@ -1,8 +1,8 @@
 import cv2
 import os
-from backend.utils.preprocessing import preprocess_image
-from backend.utils.prediction import predict_image
-from backend.models.model_loader import load_model_once
+from utils.preprocessing import preprocess_image
+from utils.prediction import predict_image
+from models.model_loader import load_model_once
 
 def process_video(video_path, frame_skip=30):
     cap = cv2.VideoCapture(video_path)
