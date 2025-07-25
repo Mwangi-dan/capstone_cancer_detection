@@ -124,5 +124,6 @@ docker-compose up --build
 ## Author
 
 Daniel Ndung'u 
+
 Email: d.ndungu@alustudent.com
-Location: Nairobi, Kenya
+
