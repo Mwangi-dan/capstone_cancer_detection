@@ -65,14 +65,14 @@ This project is a full-stack medical diagnostic system for the early detection o
 ```
 .
 ├── frontend/              # Flask UI
+    ├── static/                # Tailwind CSS and images
+    ├── templates/             # HTML templates
+    ├── database/              
 ├── backend/               # FastAPI API
 ├── model/                 # Trained models & Grad-CAM logic
-├── database/              # SQLAlchemy models & migrations
-├── static/                # Tailwind CSS and images
-├── templates/             # HTML templates
 ├── Dockerfile             # Backend container
 ├── docker-compose.yml     # Multi-container setup
-└── README.md              # You're here!
+└── README.md              
 ```
 
 ## Installation
