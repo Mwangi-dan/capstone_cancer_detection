@@ -40,7 +40,7 @@ load_dotenv()
 
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOADS_DIR = os.path.join(BASE_DIR, "..", "uploads")
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
 
 if not os.path.exists(UPLOADS_DIR):
     os.makedirs(UPLOADS_DIR)
@@ -78,7 +78,7 @@ login_manager.init_app(app)
 
 bcrypt = Bcrypt(app)
 
-FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000/predict/")
+FASTAPI_URL = os.getenv("FASTAPI_URL",)
 
 # User Loader
 @login_manager.user_loader
@@ -142,9 +142,18 @@ def predict():
 
             # Rename/move Grad-CAM from temp to persistent
             gradcam_ext = os.path.splitext(data["gradcam_path"])[1]
-            gradcam_filename = f"{hashname}_gradcam{gradcam_ext}"
+
+            gradcam_filename = f"{hashname}_gradcam.jpg"
             new_gradcam_path = os.path.join(GRADCAM_FOLDER, gradcam_filename)
-            os.rename(data["gradcam_path"], new_gradcam_path)
+            # os.rename(data["gradcam_path"], new_gradcam_path)
+            gradcam_url = f"{FASTAPI_URL.replace('/predict/', '')}/gradcams/{os.path.basename(data['gradcam_path'])}"
+            response = requests.get(gradcam_url)
+            if response.status_code == 200:
+                with open(new_gradcam_path, "wb") as f:
+                    f.write(response.content)
+            else:
+                return render_template("predict.html", error="Failed to download Grad-CAM image from backend", show_result=True)
+        
 
             image_filename = filename
             gradcam_filename = gradcam_filename
@@ -529,4 +538,4 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host='0.0.0.0', port=8000)
