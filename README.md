@@ -2,8 +2,25 @@
 
 This project is a full-stack medical diagnostic system for the early detection of gastric cancer from endoscopic images using deep learning. The solution is designed to aid clinicians in identifying cancerous lesions through a web-based interface powered by a trained convolutional neural network (CNN) and explainable AI via Grad-CAM visualizations.
 
-## Screenshot
+## Screenshots
+PC
 ![Gastric Cancer Detection System](./images/gstroDetect_screenshot.png)
+
+Mobile
+![Gastric Cancer Detection System Mobile](./images/gstroDetect_mobile.png)
+
+## Table of Contents
+- [Live site](#live-site)
+- [Link to video demo](#link-to-video-demo)
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Model Training Summary](#model-training-summary)
+- [Folder Structure](#folder-structure)
+- [Installation](#installation)
+- [Docker Setup](#docker-setup)
+- [Testing the System](#testing-the-system)
+- [Admin Features](#admin-features)
+- [Author](#author)
 
 ## Live site
 
