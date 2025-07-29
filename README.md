@@ -138,8 +138,9 @@ docker-compose up --build
 1. Launch the Flask frontend on http://localhost:5000
 2. Register as a new clinician.
 3. Upload an image on the prediction page.
-4. View results with Grad-CAM.
-5. Explore your history and reports after logging in.
+4. Upload video for prediction.
+5. View results with Grad-CAM.
+6. Explore your history and reports after logging in.
 
 ## Admin Features
 
