@@ -16,3 +16,4 @@ app.add_middleware(
 app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
 app.include_router(retrain.router, prefix="/retrain", tags=["Retraining"])
 app.mount("/gradcams", StaticFiles(directory="uploads/gradcams"), name="gradcams")
+app.mount("/temp", StaticFiles(directory="temp"), name="temp")

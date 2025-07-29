@@ -41,7 +41,10 @@ async def predict(file: UploadFile = File(...)):
 async def predict_video(file: UploadFile = File(...)):
     try:
         contents = await file.read()
-        video_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        VIDEO_FOLDER = os.path.join("uploads", "videos")
+        os.makedirs(VIDEO_FOLDER, exist_ok=True)
+        video_path = os.path.join(VIDEO_FOLDER, file.filename)
+
 
         with open(video_path, "wb") as f:
             f.write(contents)

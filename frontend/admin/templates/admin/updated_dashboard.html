@@ -24,25 +24,8 @@
     </div>
     <div class="bg-white rounded-lg shadow p-4 text-center">
       <h2 class="text-sm text-gray-500">Last Retraining</h2>
-      <p class="text-sm text-gray-700 mt-1">{{ stats.retrain_time if stats.retrain_time else "26/7/25 " }}</p>
+      <p class="text-sm text-gray-700 mt-1">{{ stats.retrain_time if stats.retrain_time else "Never" }}</p>
     </div>
-  </div>
-
-  <div class="mb-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <a href="{{ url_for('admin.view_users') }}" class="bg-white border rounded-xl p-4 shadow hover:shadow-lg transition">
-      <h2 class="text-xl font-semibold text-gray-800">👤 User Management</h2>
-      <p class="text-gray-600 text-sm mt-1">Verify clinicians, deactivate users.</p>
-    </a>
-
-    <a href="{{ url_for('admin.view_feedback') }}" class="bg-white border rounded-xl p-4 shadow hover:shadow-lg transition">
-      <h2 class="text-xl font-semibold text-gray-800">🧠 Prediction Feedback</h2>
-      <p class="text-gray-600 text-sm mt-1">View clinician feedback on model predictions.</p>
-    </a>
-
-    <a href="{{ url_for('admin.retrain') }}" class="bg-white border rounded-xl p-4 shadow hover:shadow-lg transition">
-      <h2 class="text-xl font-semibold text-gray-800">🛠 Model Retraining</h2>
-      <p class="text-gray-600 text-sm mt-1">Trigger model updates using corrected feedback.</p>
-    </a>
   </div>
 
   <!-- System Health Monitor -->

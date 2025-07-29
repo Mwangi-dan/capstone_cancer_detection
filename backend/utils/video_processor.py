@@ -4,7 +4,9 @@ from utils.preprocessing import preprocess_image
 from utils.prediction import predict_image
 from models.model_loader import load_model_once
 
+
 def process_video(video_path, frame_skip=30):
+    os.makedirs("temp", exist_ok=True) 
     cap = cv2.VideoCapture(video_path)
     model = load_model_once()
     predictions = []
@@ -26,7 +28,8 @@ def process_video(video_path, frame_skip=30):
             predictions.append({
                 "frame": frame_index,
                 "label": label,
-                "confidence": float(confidence)
+                "confidence": float(confidence),
+                "image_path": f"/temp/frame_{frame_index}.jpg"
             })
 
             frame_index += 1

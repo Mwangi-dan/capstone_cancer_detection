@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from models import User, Feedback, Prediction, Notification
 from database import db
 import pandas as pd
+from collections import Counter
 from flask import make_response
 
 
@@ -23,7 +24,28 @@ def admin_required(view):
 def dashboard():
     from models import User, Prediction, Feedback
     import os
-    from datetime import datetime
+    from datetime import datetime, timedelta
+
+    uploads_path = current_app.config['UPLOAD_FOLDER']
+    gradcam_path = current_app.config['GRADCAM_FOLDER']
+
+    # File counts
+    num_uploaded_images = len(os.listdir(uploads_path))
+    num_gradcam_images = len(os.listdir(gradcam_path))
+
+    # File size stats
+    total_upload_size = sum(os.path.getsize(os.path.join(uploads_path, f)) for f in os.listdir(uploads_path))
+    total_gradcam_size = sum(os.path.getsize(os.path.join(gradcam_path, f)) for f in os.listdir(gradcam_path))
+    total_size_mb = round((total_upload_size + total_gradcam_size) / (1024 * 1024), 2)
+
+    # File types
+    file_extensions = [os.path.splitext(f)[1] for f in os.listdir(uploads_path)]
+    ext_counts = dict(Counter(file_extensions))
+
+    # Uploads over time (last 7 days)
+    past_week = datetime.utcnow() - timedelta(days=7)
+    recent_uploads = Prediction.query.filter(Prediction.timestamp >= past_week).all()
+    uploads_by_day = Counter([p.timestamp.strftime("%Y-%m-%d") for p in recent_uploads])
 
     total_users = User.query.count()
     verified_users = User.query.filter_by(is_verified=True).count()
@@ -43,7 +65,12 @@ def dashboard():
             "verified": verified_users,
             "predictions": total_predictions,
             "feedback": total_feedback,
-            "retrain_time": retrain_time
+            "retrain_time": retrain_time,
+            "num_uploaded_images": num_uploaded_images,
+            "num_gradcam_images": num_gradcam_images,
+            "total_size_mb": total_size_mb,
+            "ext_counts": ext_counts,
+            "uploads_by_day": uploads_by_day
         }
     )
 

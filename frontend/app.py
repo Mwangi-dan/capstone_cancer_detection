@@ -145,8 +145,8 @@ def predict():
 
             gradcam_filename = f"{hashname}_gradcam.jpg"
             new_gradcam_path = os.path.join(GRADCAM_FOLDER, gradcam_filename)
-            # os.rename(data["gradcam_path"], new_gradcam_path)
-            gradcam_url = f"{FASTAPI_URL.replace('/predict/', '')}/gradcams/{os.path.basename(data['gradcam_path'])}"
+            print(f"{FASTAPI_URL}")
+            gradcam_url = f"{FASTAPI_URL.replace('/predict', '')}/gradcams/{os.path.basename(data['gradcam_path'])}"
             response = requests.get(gradcam_url)
             if response.status_code == 200:
                 with open(new_gradcam_path, "wb") as f:
@@ -184,6 +184,97 @@ def predict():
             return render_template("predict.html", error=str(e), show_result=True)
 
     return render_template("predict.html", show_result=False)
+
+"""
+@app.route("/video-predict", methods=["GET", "POST"])
+@login_required
+def video_predict():
+    if not current_user.is_verified:
+        flash("Only verified clinicians can use this feature.", "danger")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        try:
+            file = request.files["video"]
+            if not file:
+                return render_template("video_predict.html", error="No file selected", show_result=True)
+
+            ext = os.path.splitext(file.filename)[1]
+            raw = f"{current_user.id}{time.time()}".encode("utf-8")
+            hashname = hashlib.sha256(raw).hexdigest()
+            filename = secure_filename(f"{hashname}{ext}")
+
+            video_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(video_path)
+
+            # Send video to FastAPI for prediction
+            with open(video_path, "rb") as f:
+                files = {"file": (filename, f, file.content_type)}
+                res = requests.post(f"{FASTAPI_URL}/video", files=files)
+
+            if res.status_code != 200:
+                return render_template("video_predict.html", error="Prediction failed", show_result=True)
+
+            data = res.json()
+            return render_template("video_predict.html", predictions=data["frame_predictions"], show_result=True, video_filename=filename)
+
+        except Exception as e:
+            return render_template("video_predict.html", error=str(e), show_result=True)
+
+    return render_template("video_predict.html", show_result=False)
+"""
+
+
+@app.route("/video-predict", methods=["GET", "POST"])
+@login_required
+def video_predict():
+    if not current_user.is_verified:
+        flash("Only verified clinicians can use this feature.", "danger")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        try:
+            file = request.files["video"]
+            if not file:
+                return render_template("video_predict.html", error="No file selected", show_result=True)
+
+            ext = os.path.splitext(file.filename)[1]
+            raw = f"{current_user.id}{time.time()}".encode("utf-8")
+            hashname = hashlib.sha256(raw).hexdigest()
+            filename = secure_filename(f"{hashname}{ext}")
+            video_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(video_path)
+
+            with open(video_path, "rb") as f:
+                files = {"file": (filename, f, file.content_type)}
+                res = requests.post(f"{FASTAPI_URL}/video", files=files)
+
+            if res.status_code != 200:
+                return render_template("video_predict.html", error="Prediction failed", show_result=True)
+
+            data = res.json()
+            predictions = data["frame_predictions"]
+
+            # Majority voting
+            cancerous_count = sum(1 for p in predictions if p["label"].lower() == "cancerous")
+            non_cancerous_count = len(predictions) - cancerous_count
+            final_label = "Cancerous" if cancerous_count > non_cancerous_count else "Non-cancerous"
+
+            return render_template(
+                "video_predict.html",
+                show_result=True,
+                video_filename=filename,
+                final_label=final_label,
+                predictions=predictions
+            )
+
+        except Exception as e:
+            return render_template("video_predict.html", error=str(e), show_result=True)
+
+    return render_template("video_predict.html", show_result=False)
+
+
+
 
 def log_action(user_id, action, metadata=None):
     log = Log(user_id=user_id, action=action, metadata=metadata)
@@ -538,4 +629,4 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=True)

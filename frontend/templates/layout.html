@@ -62,6 +62,7 @@
 
           {% if current_user.is_authenticated %}
             <a href="/predict" class="hover:text-blue-600 transition duration-300">Predict</a>
+            <a href="/video-predict" class="hover:text-blue-600 transition duration-300">Video Predict</a>
             <a href="{{ url_for('profile') }}" class="hover:text-blue-600 transition duration-300">Profile</a>
             <a href="/logout" class="hover:text-red-600 font-semibold transition duration-300">Logout</a>
           {% else %}
